@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
+using System.Security.Authentication.ExtendedProtection;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace DirReader;
 internal class Program
 {
     const string fileName = "presets.json";
-    static List<Preset>? presets;
+    static List<Preset>? presets = new List<Preset>();
     static void Main(string[] args)
     {
         ReadPresets();
@@ -86,17 +83,17 @@ internal class Program
     }
     static void CountFiles(Preset preset)
     {
-        int totalImages = 0;
+        int totalFiles = 0;
         if (Directory.Exists(preset.Directory))
         {
             string[] subDirectories = Directory.GetDirectories(preset.Directory);
             foreach (var subDirectory in subDirectories)
             {
-                string[] pngFiles = Directory.GetFiles(subDirectory, preset.ExtensionType, SearchOption.AllDirectories);
-                totalImages += pngFiles.Length;
-                Console.WriteLine($"Folder: {subDirectory} contains {pngFiles.Length} .png files");
+                string[] files = Directory.GetFiles(subDirectory, "*"+preset.ExtensionType, SearchOption.AllDirectories);
+                totalFiles += files.Length;
+                Console.WriteLine($"Folder: {subDirectory} contains {files.Length} {preset.ExtensionType} files");
             }
-            Console.WriteLine($"\nTotal image count: {totalImages}");
+            Console.WriteLine($"\nTotal image count: {totalFiles}");
         }
         else
         {
@@ -156,17 +153,19 @@ internal class Program
         while (true)
         {
             int optionIterator = 1;
+            Console.WriteLine($"* ================================================ *");
             Console.WriteLine($"options:");
-            Console.WriteLine($"- c: read from a directory");
-            Console.WriteLine($"- n: read from a directory and save to presets");
+            Console.WriteLine($"c: read from a directory");
+            Console.WriteLine($"n: read from a directory and save to presets");
+            Console.WriteLine($"-d x: deletes xth preset");
+            Console.WriteLine($"q: exit");
             Console.WriteLine($"");
-
-            Console.WriteLine("(presets)");
+            Console.WriteLine($"(presets)");
             if (presets.Count > 0)
             {
                 foreach (Preset preset in presets)
                 {
-                    Console.WriteLine($"- {optionIterator++}: read {preset.ExtensionType} files in dir {preset.Directory}");
+                    Console.WriteLine($"{optionIterator++}: read {preset.ExtensionType} files in dir {preset.Directory}");
                 }
             }
             else
@@ -174,11 +173,39 @@ internal class Program
                 Console.WriteLine("(no presets found.)");
             }
 
-            Console.WriteLine($"- q: exit");
 
             string response = Console.ReadLine().ToLower();
 
-            if (response == "q")
+            if (int.TryParse(response, out int result))
+            {
+                if (result - 1 >= 0 && result - 1 < presets.Count)
+                {
+                    if (presets[result-1].Type == Preset.SearchType.FileCount)
+                    {
+                        CountFiles(presets[result - 1]);
+                    }
+                    else if (presets[result - 1].Type == Preset.SearchType.LineCount)
+                    {
+                        CountLines(presets[result - 1]);
+                    }
+                }
+            }
+            else if (response.StartsWith("-d "))
+            {
+                string valuePart = response.Substring(3); 
+
+                if (int.TryParse(valuePart, out int parsedValue))
+                {
+                    presets.RemoveAt(parsedValue - 1);
+                    Console.WriteLine($"Removed preset {parsedValue}");
+                    SavePresets();
+                }
+                else
+                {
+                    Console.WriteLine("That preset does not exist.");
+                }
+            }
+            else if (response == "q")
             {
                 break;
             }
