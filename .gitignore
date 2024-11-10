@@ -1,0 +1,11 @@
+.vs/
+bin/
+obj/
+
+[Pp]roperties/
+Build/
+
+**.csproj
+**.user
+**.sln
+**.json
