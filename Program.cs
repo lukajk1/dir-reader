@@ -12,9 +12,6 @@ internal class Program
     static void Main(string[] args)
     {
         ReadPresets();
-
-        Console.WriteLine("\nThis program reads the line count of all .cs files in a folder directory and its subfolders.\n");
-
         MainLoop();
 
     }
@@ -152,27 +149,46 @@ internal class Program
     {
         while (true)
         {
+            const int offset = 9;
             int optionIterator = 1;
-            Console.WriteLine($"* ================================================ *");
-            Console.WriteLine($"options:");
-            Console.WriteLine($"c: read from a directory");
-            Console.WriteLine($"n: read from a directory and save to presets");
-            Console.WriteLine($"-d x: deletes xth preset");
-            Console.WriteLine($"q: exit");
-            Console.WriteLine($"");
-            Console.WriteLine($"(presets)");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("options:");
+            Console.WriteLine($"{"c:",-offset} read from a directory");
+            Console.WriteLine($"{"n:",-offset} read from a directory and save to presets");
+            Console.WriteLine($"{"-d x:",-offset} deletes xth preset");
+            Console.WriteLine($"{"q:",-offset} exit");
+            Console.WriteLine();
+
+            Console.WriteLine("presets:");
+
             if (presets.Count > 0)
             {
                 foreach (Preset preset in presets)
                 {
-                    Console.WriteLine($"{optionIterator++}: read {preset.ExtensionType} files in dir {preset.Directory}");
+                    string optionText;
+
+                    if (preset.Type == Preset.SearchType.LineCount)
+                    {
+                        optionText = $"{optionIterator++}:";
+                        Console.WriteLine($"{optionText,-offset} read number of lines in {preset.ExtensionType} files in dir {preset.Directory}");
+                    }
+                    else if (preset.Type == Preset.SearchType.FileCount)
+                    {
+                        optionText = $"{optionIterator++}:";
+                        Console.WriteLine($"{optionText,-offset} read number of {preset.ExtensionType} files in dir {preset.Directory}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Unknown operation on preset");
+                    }
                 }
             }
             else
             {
-                Console.WriteLine("(no presets found.)");
+                Console.WriteLine("(No presets found.)");
             }
-
+            Console.ResetColor();
 
             string response = Console.ReadLine().ToLower();
 
