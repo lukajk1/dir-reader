@@ -4,6 +4,7 @@ obj/
 
 [Pp]roperties/
 Build/
+_dev/
 
 **.csproj
 **.user
